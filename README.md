@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Competitive Tracker Web Dashboard
+
+A production-ready Next.js 14 SaaS dashboard for tracking competitor intelligence with AI-powered insights.
+
+## Features
+
+- **User Authentication**: Email + password signup/login via Supabase Auth
+- **Landing Page**: Hero section, feature list, and transparent pricing (Free/Pro/Enterprise)
+- **Dashboard**: Protected routes, real-time competitor tracking (coming in Session 2)
+- **Responsive Design**: Tailwind CSS + mobile-first layout
+
+## Tech Stack
+
+- **Frontend**: Next.js 14 (App Router) + React 18
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase Auth + PostgreSQL
+- **Deployment**: Vercel
+- **Utilities**: Lucide icons, DOMPurify
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Supabase account (free tier)
+
+### Installation
+
+```bash
+npm install
+```
+
+### Environment Variables
+
+Create a `.env.local` file:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+GITHUB_PAT=your-github-personal-access-token
+GITHUB_REPO=farrukhj91/pm-competitive-research-tracker
+```
+
+### Running Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Visit http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deployment to Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Step 1: Push to GitHub
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git remote add origin https://github.com/your-username/competitive-tracker-web.git
+git branch -M main
+git push -u origin main
+```
 
-## Learn More
+### Step 2: Deploy to Vercel
 
-To learn more about Next.js, take a look at the following resources:
+1. Go to [vercel.com](https://vercel.com)
+2. Connect your GitHub repo
+3. Set environment variables
+4. Deploy!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+├── (auth)/               # Auth pages (signup, login, confirm)
+├── (dashboard)/          # Protected dashboard routes
+└── page.tsx             # Landing page with pricing
 
-## Deploy on Vercel
+lib/
+├── supabase.ts          # Supabase client
+└── auth.ts              # Auth helpers
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Session Progress
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- ✅ Session 1: Auth scaffolding + landing page
+- ⏳ Session 2: Dashboard pages + competitor management
+- ⏳ Session 3: API routes + GitHub Actions integration
