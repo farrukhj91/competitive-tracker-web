@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
 
-export default function Confirm() {
+function ConfirmContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function Confirm() {
 
         <p className="text-gray-600">
           We've sent a confirmation link to{' '}
-          <span className="font-medium text-gray-900">{email}</span>
+          <span className="font-medium text-gray-900">{email || 'your email'}</span>
         </p>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -50,5 +51,13 @@ export default function Confirm() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Confirm() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ConfirmContent />
+    </Suspense>
   );
 }
