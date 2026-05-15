@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CrawlProgressModal } from '@/components/modals/CrawlProgressModal';
 import {
   getBusiness,
   getCompetitorsForBusiness,
@@ -29,6 +30,24 @@ function formatDate(d?: string | null) {
   const date = new Date(d);
   if (Number.isNaN(date.getTime())) return d;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+async function triggerCrawl(businessId: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/businesses/${businessId}/crawl`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to trigger crawl');
+    }
+
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(message);
+  }
 }
 
 function cleanUrl(url?: string | null) {
@@ -50,6 +69,8 @@ export default function BusinessView() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [showCrawlModal, setShowCrawlModal] = useState(false);
+  const [crawlError, setCrawlError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -145,7 +166,19 @@ export default function BusinessView() {
           </div>
         </div>
 
-        <Button leftIcon={<Play className="h-4 w-4" />}>
+        <Button
+          leftIcon={<Play className="h-4 w-4" />}
+          onClick={async () => {
+            try {
+              await triggerCrawl(business.id);
+              setShowCrawlModal(true);
+              setCrawlError(null);
+            } catch (error) {
+              const message = error instanceof Error ? error.message : 'Unknown error';
+              setCrawlError(message);
+            }
+          }}
+        >
           Trigger crawl
         </Button>
       </div>
@@ -254,6 +287,21 @@ export default function BusinessView() {
           )}
         </section>
       </div>
+
+      {/* Crawl progress modal */}
+      <CrawlProgressModal
+        businessId={business.id}
+        isOpen={showCrawlModal}
+        onClose={() => setShowCrawlModal(false)}
+      />
+
+      {/* Crawl error alert */}
+      {crawlError && (
+        <div className="fixed bottom-4 right-4 z-40 bg-red-50 border border-red-200 rounded-lg p-4 max-w-sm shadow-sm">
+          <p className="text-sm font-medium text-red-900">Error triggering crawl</p>
+          <p className="text-sm text-red-700 mt-1">{crawlError}</p>
+        </div>
+      )}
     </div>
   );
 }

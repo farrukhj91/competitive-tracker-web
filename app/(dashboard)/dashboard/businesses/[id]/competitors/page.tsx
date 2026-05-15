@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Users, ExternalLink, Globe } from 'lucide-react';
+import { ArrowLeft, Users, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CompetitorRow } from '@/components/dashboard/CompetitorRow';
+import { AddCompetitorModal } from '@/components/modals/AddCompetitorModal';
 import {
   getBusiness,
   getCompetitorsForBusiness,
@@ -14,14 +15,6 @@ import {
   type Competitor,
 } from '@/lib/db';
 
-function cleanUrl(url?: string | null) {
-  if (!url) return null;
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return url;
-  }
-}
 
 export default function CompetitorsPage() {
   const params = useParams<{ id: string }>();
@@ -30,6 +23,7 @@ export default function CompetitorsPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -74,7 +68,10 @@ export default function CompetitorsPage() {
             {competitors.length} tracked for {business?.name}
           </p>
         </div>
-        <Button disabled title="Add competitor — coming in Session 3">
+        <Button
+          leftIcon={<Plus className="h-4 w-4" />}
+          onClick={() => setShowAddModal(true)}
+        >
           Add competitor
         </Button>
       </div>
@@ -83,92 +80,61 @@ export default function CompetitorsPage() {
         <EmptyState
           icon={Users}
           title="No competitors yet"
-          description="Competitor management UI will be wired up in Session 3 (with add/edit/pause/remove + Claude-assisted discovery)."
+          description="Add your first competitor to get started."
+          action={
+            <Button onClick={() => setShowAddModal(true)}>
+              Add competitor
+            </Button>
+          }
         />
       ) : (
         <div className="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
           <table className="w-full">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr>
-                <Th>Name</Th>
-                <Th>Website</Th>
-                <Th>LinkedIn</Th>
-                <Th>Status</Th>
-                <Th className="text-right">Added</Th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200">
+            <tbody>
               {competitors.map((c) => (
-                <tr key={c.id} className="hover:bg-zinc-50 transition-colors">
-                  <Td>
-                    <span className="font-medium text-zinc-900">{c.name}</span>
-                  </Td>
-                  <Td>
-                    {c.url ? (
-                      <a
-                        href={c.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-zinc-700
-                                   hover:text-indigo-600 transition-colors"
-                      >
-                        <Globe className="h-3 w-3" />
-                        {cleanUrl(c.url)}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    ) : (
-                      <span className="text-zinc-400">—</span>
-                    )}
-                  </Td>
-                  <Td>
-                    {c.linkedin_url ? (
-                      <a
-                        href={c.linkedin_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-zinc-700 hover:text-indigo-600 transition-colors"
-                      >
-                        View
-                      </a>
-                    ) : (
-                      <span className="text-zinc-400">—</span>
-                    )}
-                  </Td>
-                  <Td>
-                    {c.is_active ? (
-                      <Badge tone="success">Active</Badge>
-                    ) : (
-                      <Badge tone="neutral">Paused</Badge>
-                    )}
-                  </Td>
-                  <Td className="text-right">
-                    <span className="text-xs text-zinc-500 tabular-nums">
-                      {new Date(c.created_at).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </Td>
-                </tr>
+                <CompetitorRow
+                  key={c.id}
+                  competitor={c}
+                  onStatusChange={(updated) => {
+                    setCompetitors(
+                      competitors.map((comp) => (comp.id === updated.id ? updated : comp)),
+                    );
+                  }}
+                  onRemove={(id) => {
+                    setCompetitors(competitors.filter((comp) => comp.id !== id));
+                  }}
+                />
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* Add competitor modal */}
+      {business && (
+        <AddCompetitorModal
+          businessId={business.id}
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onAdd={(newCompetitor) => {
+            setCompetitors([...competitors, newCompetitor]);
+            setShowAddModal(false);
+          }}
+        />
+      )}
     </div>
   );
-}
-
-function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 ${className}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 text-sm text-zinc-700 ${className}`}>{children}</td>;
 }
