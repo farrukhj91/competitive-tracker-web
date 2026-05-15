@@ -1,62 +1,76 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 
 function ConfirmContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
-  const router = useRouter();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 text-center">
-        <div className="flex justify-center">
-          <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600">
-            <Mail className="h-6 w-6 text-white" />
+    <div className="min-h-screen grain hero-bg flex flex-col">
+      <header className="px-6 md:px-8 py-6">
+        <Logo />
+      </header>
+
+      <main className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md text-center">
+          <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-8">
+            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl
+                            bg-indigo-50 text-indigo-600 mb-5">
+              <Mail className="h-5 w-5" />
+            </div>
+
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 mb-2">
+              Check your email
+            </h1>
+            <p className="text-sm text-zinc-600 mb-6">
+              We sent a confirmation link to{' '}
+              <span className="font-medium text-zinc-900">{email || 'your email'}</span>
+            </p>
+
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-left mb-6">
+              <p className="text-sm text-indigo-900 leading-relaxed">
+                Click the link in the email to confirm your account. You&apos;ll be signed in
+                automatically and taken to your dashboard.
+              </p>
+            </div>
+
+            <p className="text-xs text-zinc-500">
+              Didn&apos;t get it? Check your spam folder, or{' '}
+              <Link
+                href="/signup"
+                className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+              >
+                try signing up again
+              </Link>
+              .
+            </p>
           </div>
-        </div>
 
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-          Check your email
-        </h2>
-
-        <p className="text-gray-600">
-          We've sent a confirmation link to{' '}
-          <span className="font-medium text-gray-900">{email || 'your email'}</span>
-        </p>
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            Click the link in the email to confirm your account and get started with tracking your competitors.
+          <p className="text-center text-xs text-zinc-500 mt-6">
+            <Link href="/" className="hover:text-zinc-700 transition-colors">
+              ← Back to home
+            </Link>
           </p>
         </div>
-
-        <p className="text-sm text-gray-600">
-          Didn't receive the email? Check your spam folder or{' '}
-          <button
-            onClick={() => router.push('/signup')}
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            try signing up again
-          </button>
-        </p>
-
-        <div className="pt-4">
-          <Link href="/" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-            Back to home
-          </Link>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 export default function Confirm() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-sm text-zinc-500">
+          Loading…
+        </div>
+      }
+    >
       <ConfirmContent />
     </Suspense>
   );

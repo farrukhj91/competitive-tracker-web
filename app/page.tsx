@@ -1,172 +1,298 @@
 import Link from 'next/link';
-import { Check } from 'lucide-react';
+import {
+  ArrowRight,
+  Check,
+  Eye,
+  Sparkles,
+  Layers,
+  Mail,
+  Bell,
+  Plug,
+} from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
+
+const tiers = [
+  {
+    name: 'Free',
+    price: '$0',
+    period: 'forever',
+    description: 'Track one business, get the full daily flow.',
+    features: [
+      '1 business',
+      'Daily AI-powered crawls',
+      'Email reports + PDF',
+      'Up to 8 competitors',
+      'Community support',
+    ],
+    cta: 'Get started free',
+    ctaHref: '/signup',
+    highlighted: false,
+  },
+  {
+    name: 'Pro',
+    price: '$29.99',
+    period: 'per month',
+    description: 'For analysts and small teams who need it all.',
+    features: [
+      'Unlimited businesses',
+      'Daily crawls + on-demand',
+      'Slack & email notifications',
+      'Webhooks + API access',
+      'Priority crawl queue',
+      'Email support',
+    ],
+    cta: 'Start free trial',
+    ctaHref: '/signup',
+    highlighted: true,
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    period: 'tailored',
+    description: 'For larger orgs and agencies.',
+    features: [
+      'Everything in Pro',
+      'SSO + team seats',
+      'Dedicated support',
+      'SLA guarantee',
+      'Custom integrations',
+      'Whitelabel option',
+    ],
+    cta: 'Contact sales',
+    ctaHref: 'mailto:hello@competitive-tracker.app',
+    highlighted: false,
+  },
+];
+
+const features = [
+  {
+    icon: Eye,
+    title: 'Automated daily crawls',
+    body: 'Pricing, features, blog, jobs, news, LinkedIn — captured every day without you lifting a finger.',
+  },
+  {
+    icon: Sparkles,
+    title: 'AI-powered insights',
+    body: 'Claude analyzes every change and surfaces what matters: positioning shifts, hiring trends, pricing moves.',
+  },
+  {
+    icon: Layers,
+    title: 'Multi-source monitoring',
+    body: 'Six data sources per competitor. SWOT, comparison matrices, and strategic recommendations included.',
+  },
+  {
+    icon: Mail,
+    title: 'Email reports + PDF',
+    body: 'A polished briefing in your inbox each morning, plus a PDF you can forward, archive, or share.',
+  },
+  {
+    icon: Bell,
+    title: 'Real-time alerts',
+    body: 'Slack notifications for material changes — pricing updates, leadership moves, funding news.',
+  },
+  {
+    icon: Plug,
+    title: 'Built to plug in',
+    body: 'Webhooks, API access, and integrations with the tools your team already lives in.',
+  },
+];
 
 export default function Home() {
-  const tiers = [
-    {
-      name: 'Free',
-      price: '$0',
-      description: 'Perfect for getting started',
-      features: [
-        '1 business',
-        'Daily crawls',
-        'Email reports',
-        'Basic competitor tracking',
-        'Community support',
-      ],
-      cta: 'Get Started Free',
-      ctaHref: '/signup',
-      highlighted: false,
-    },
-    {
-      name: 'Pro',
-      price: '$29.99',
-      period: '/month',
-      description: 'For serious competitive analysts',
-      features: [
-        'Unlimited businesses',
-        'Daily crawls',
-        'Email & Slack notifications',
-        'Webhooks & custom integrations',
-        'API access',
-        'Priority crawls',
-        'Priority support',
-      ],
-      cta: 'Start Free Trial',
-      ctaHref: '/signup',
-      highlighted: true,
-    },
-    {
-      name: 'Enterprise',
-      price: 'Custom',
-      description: 'For large teams',
-      features: [
-        'Unlimited businesses',
-        'Everything in Pro',
-        'SSO & team management',
-        'Dedicated support',
-        'SLA guarantee',
-        'Custom integrations',
-      ],
-      cta: 'Contact Sales',
-      ctaHref: '/contact',
-      highlighted: false,
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white text-zinc-900">
       {/* Navigation */}
-      <nav className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-900">Competitive Tracker</h1>
-        <div className="space-x-4">
-          <Link href="/login" className="text-gray-600 hover:text-gray-900">
-            Sign In
-          </Link>
-          <Link href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            Get Started
-          </Link>
-        </div>
-      </nav>
+      <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md">
+        <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-8 h-16">
+          <Logo />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="text-sm font-medium text-zinc-700 hover:text-zinc-900 px-3 py-2 rounded-lg
+                         hover:bg-zinc-100 transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+            <Link href="/signup">
+              <Button size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                Get started
+              </Button>
+            </Link>
+          </div>
+        </nav>
+      </header>
 
-      {/* Hero Section */}
-      <section className="px-6 py-20 max-w-5xl mx-auto text-center">
-        <h2 className="text-5xl font-bold text-gray-900 mb-6">
-          Track Your Competitors in Real Time
-        </h2>
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Get daily AI-powered insights on competitor pricing, features, hiring, and more. Stay ahead with automated competitive intelligence.
-        </p>
-        <div className="space-x-4">
-          <Link
-            href="/signup"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700"
-          >
-            Start Free
-          </Link>
-          <button className="inline-block border-2 border-gray-900 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50">
-            Watch Demo
-          </button>
+      {/* Hero */}
+      <section className="grain hero-bg border-b border-zinc-200">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-24 md:py-32 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50
+                          border border-indigo-200 text-indigo-700 text-xs font-medium mb-6">
+            <Sparkles className="h-3.5 w-3.5" />
+            Powered by Claude
+          </div>
+          <h1 className="text-5xl md:text-6xl font-semibold tracking-tight text-zinc-900 mb-6
+                         max-w-3xl mx-auto leading-[1.05]">
+            Competitive intelligence,{' '}
+            <span className="text-indigo-600">on autopilot.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-zinc-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Track your competitors&apos; pricing, features, hiring, and news every day.
+            Get a polished AI briefing in your inbox each morning.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link href="/signup">
+              <Button size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                Start tracking — free
+              </Button>
+            </Link>
+            <Link href="#pricing">
+              <Button size="lg" variant="secondary">
+                See pricing
+              </Button>
+            </Link>
+          </div>
+          <p className="text-xs text-zinc-500 mt-6">
+            No credit card required · 1 business free, forever
+          </p>
         </div>
       </section>
 
       {/* Features */}
-      <section className="px-6 py-16 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
-          <h3 className="text-3xl font-bold text-gray-900 text-center mb-12">
-            What You Get
-          </h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { title: 'Automated Crawls', desc: 'Daily monitoring of 8-12 competitors' },
-              { title: 'AI Analysis', desc: 'Claude-powered insights on changes & trends' },
-              { title: 'Multi-Source', desc: 'Pricing, features, blog, news, LinkedIn, jobs' },
-              { title: 'Email Reports', desc: 'Daily summaries delivered to your inbox' },
-              { title: 'Real-Time Alerts', desc: 'Slack notifications for important changes' },
-              { title: 'Easy Integration', desc: 'Webhooks, API, Zapier compatibility' },
-            ].map((feature) => (
-              <div key={feature.title} className="bg-white p-6 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">{feature.title}</h4>
-                <p className="text-gray-600 text-sm">{feature.desc}</p>
+      <section className="border-b border-zinc-200">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-24">
+          <div className="text-center mb-16 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-zinc-900 mb-4">
+              Everything you need to stay ahead
+            </h2>
+            <p className="text-base text-zinc-600 leading-relaxed">
+              Six data sources, daily analysis, and the alerts you need — without hiring an analyst.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  className="p-6 rounded-xl border border-zinc-200 bg-white
+                             hover:border-zinc-300 hover:shadow-sm transition-all duration-200"
+                >
+                  <div className="inline-flex items-center justify-center h-10 w-10 rounded-lg
+                                  bg-indigo-50 text-indigo-600 mb-4">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-base font-semibold text-zinc-900 mb-2 tracking-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-zinc-600 leading-relaxed">{feature.body}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="border-b border-zinc-200">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-24">
+          <div className="text-center mb-16 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-zinc-900 mb-4">
+              Simple, transparent pricing
+            </h2>
+            <p className="text-base text-zinc-600 leading-relaxed">
+              Start free. Upgrade when you need more businesses or richer alerts.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {tiers.map((tier) => (
+              <div
+                key={tier.name}
+                className={
+                  'relative rounded-2xl p-8 transition-all duration-200 ' +
+                  (tier.highlighted
+                    ? 'bg-zinc-900 text-white border border-zinc-900 shadow-xl md:scale-105'
+                    : 'bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-sm')
+                }
+              >
+                {tier.highlighted && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2
+                                  bg-indigo-500 text-white px-3 py-1 rounded-full
+                                  text-xs font-semibold tracking-wide">
+                    Most popular
+                  </div>
+                )}
+
+                <h3 className={`text-lg font-semibold tracking-tight mb-1 ${tier.highlighted ? 'text-white' : 'text-zinc-900'}`}>
+                  {tier.name}
+                </h3>
+                <p className={`text-sm mb-6 ${tier.highlighted ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                  {tier.description}
+                </p>
+
+                <div className="mb-6 flex items-baseline gap-1">
+                  <span className={`text-4xl font-semibold tracking-tight ${tier.highlighted ? 'text-white' : 'text-zinc-900'}`}>
+                    {tier.price}
+                  </span>
+                  <span className={`text-sm ${tier.highlighted ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                    /{tier.period}
+                  </span>
+                </div>
+
+                <Link href={tier.ctaHref}>
+                  <Button
+                    variant={tier.highlighted ? 'primary' : 'secondary'}
+                    className={
+                      'w-full mb-8 ' +
+                      (tier.highlighted ? 'bg-white text-zinc-900 hover:bg-zinc-100 active:bg-zinc-200' : '')
+                    }
+                  >
+                    {tier.cta}
+                  </Button>
+                </Link>
+
+                <ul className="space-y-3">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5">
+                      <Check
+                        className={`h-4 w-4 flex-shrink-0 mt-0.5 ${tier.highlighted ? 'text-indigo-400' : 'text-indigo-600'}`}
+                      />
+                      <span className={`text-sm ${tier.highlighted ? 'text-zinc-200' : 'text-zinc-700'}`}>
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="px-6 py-20 max-w-6xl mx-auto">
-        <h3 className="text-3xl font-bold text-gray-900 text-center mb-12">
-          Simple, Transparent Pricing
-        </h3>
-        <div className="grid md:grid-cols-3 gap-8">
-          {tiers.map((tier) => (
-            <div
-              key={tier.name}
-              className={`relative rounded-2xl p-8 ${
-                tier.highlighted
-                  ? 'border-2 border-blue-600 bg-blue-50 transform md:scale-105'
-                  : 'border border-gray-200 bg-white'
-              }`}
-            >
-              {tier.highlighted && (
-                <span className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                  Most Popular
-                </span>
-              )}
-              <h4 className="text-2xl font-bold text-gray-900 mb-2">{tier.name}</h4>
-              <p className="text-gray-600 text-sm mb-4">{tier.description}</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">{tier.price}</span>
-                {tier.period && <span className="text-gray-600 text-sm">{tier.period}</span>}
-              </div>
-              <Link
-                href={tier.ctaHref}
-                className={`block w-full py-3 rounded-lg font-semibold text-center mb-8 transition ${
-                  tier.highlighted
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'border border-gray-900 text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                {tier.cta}
-              </Link>
-              <div className="space-y-3">
-                {tier.features.map((feature) => (
-                  <div key={feature} className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700 text-sm">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+      {/* CTA */}
+      <section className="border-b border-zinc-200">
+        <div className="max-w-3xl mx-auto px-6 md:px-8 py-24 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-zinc-900 mb-4">
+            Ready to stop checking competitor sites manually?
+          </h2>
+          <p className="text-base text-zinc-600 mb-8 leading-relaxed">
+            Set it up once. Get a polished briefing every morning.
+          </p>
+          <Link href="/signup">
+            <Button size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
+              Start tracking — free
+            </Button>
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 px-6 py-8 bg-gray-50">
-        <div className="max-w-5xl mx-auto text-center text-gray-600 text-sm">
-          <p>&copy; 2026 Competitive Tracker. All rights reserved.</p>
+      <footer className="bg-zinc-50">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <Logo size="sm" />
+          <p className="text-xs text-zinc-500">
+            © 2026 Competitive Tracker. Built with care.
+          </p>
         </div>
       </footer>
     </div>

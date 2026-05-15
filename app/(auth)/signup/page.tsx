@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signUp } from '@/lib/auth';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Logo } from '@/components/ui/Logo';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -23,85 +26,85 @@ export default function SignUp() {
         setError(signUpError.message);
         return;
       }
-
       if (data.user) {
-        // Email confirmation required
         router.push(`/confirm?email=${encodeURIComponent(email)}`);
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch {
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              sign in to your account
-            </Link>
-          </p>
-        </div>
+    <div className="min-h-screen grain hero-bg flex flex-col">
+      <header className="px-6 md:px-8 py-6">
+        <Logo />
+      </header>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSignUp}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm font-medium text-red-800">{error}</p>
+      <main className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md">
+          <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-8">
+            <div className="mb-6">
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 mb-1">
+                Create your account
+              </h1>
+              <p className="text-sm text-zinc-600">
+                Start tracking competitors in under a minute.
+              </p>
             </div>
-          )}
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
+            <form onSubmit={handleSignUp} className="space-y-4">
+              {error && (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+                  <p className="text-sm font-medium text-red-800">{error}</p>
+                </div>
+              )}
+
+              <Input
+                label="Email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                placeholder="you@example.com"
               />
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
+              <Input
+                label="Password"
                 name="password"
                 type="password"
                 autoComplete="new-password"
                 required
+                placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                placeholder="••••••••"
+                hint="Use 8+ characters with a mix of letters and numbers."
               />
-            </div>
+
+              <Button type="submit" loading={loading} className="w-full">
+                {loading ? 'Creating account…' : 'Create account'}
+              </Button>
+            </form>
+
+            <p className="text-center text-sm text-zinc-600 mt-6">
+              Already have an account?{' '}
+              <Link
+                href="/login"
+                className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+              >
+                Sign in
+              </Link>
+            </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {loading ? 'Creating account...' : 'Sign up'}
-          </button>
-        </form>
-      </div>
+          <p className="text-center text-xs text-zinc-500 mt-6">
+            By creating an account, you agree to our terms and privacy policy.
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

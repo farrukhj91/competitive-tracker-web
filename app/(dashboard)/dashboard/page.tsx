@@ -1,128 +1,130 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/auth';
-import { CheckCircle, X } from 'lucide-react';
-import type { User } from '@supabase/supabase-js';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { Plus, CheckCircle2, X, Building2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { BusinessCard, type BusinessCardData } from '@/components/dashboard/BusinessCard';
+import { listBusinessesForCurrentUser } from '@/lib/db';
 
 function DashboardContent() {
-  const [user, setUser] = useState<User | null>(null);
+  const [businesses, setBusinesses] = useState<BusinessCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (searchParams.get('welcome') === 'true') {
-      setShowWelcome(true);
-    }
+    if (searchParams.get('welcome') === 'true') setShowWelcome(true);
   }, [searchParams]);
 
   useEffect(() => {
     let mounted = true;
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      if (!session?.user) {
-        router.push('/login');
-      } else {
-        setUser(session.user);
-      }
-      setLoading(false);
-    });
-
-    // Subscribe to auth changes — handles the case where the session
-    // cookie is set just after the page loads (e.g., right after email
-    // verification callback redirects here).
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+    listBusinessesForCurrentUser()
+      .then((rows) => {
         if (!mounted) return;
-        if (!session?.user) {
-          router.push('/login');
-        } else {
-          setUser(session.user);
-          setLoading(false);
-        }
-      }
-    );
-
+        setBusinesses(
+          rows.map((b) => ({
+            id: b.id,
+            name: b.name,
+            url: b.url,
+            description: b.description,
+            competitor_count: b.competitor_count,
+            last_report_date: b.last_report_date,
+            is_paused: b.is_paused ?? false,
+          })),
+        );
+      })
+      .finally(() => mounted && setLoading(false));
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
-  }, [router]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <div className="text-gray-600 flex items-center gap-4">
-            <span>{user?.email}</span>
-            <button
-              onClick={handleLogout}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {showWelcome && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-green-900">Welcome aboard! 🎉</p>
-                <p className="text-sm text-green-700 mt-1">
-                  Your email has been verified and you're signed in. Add your first business below to start tracking competitors.
-                </p>
-              </div>
+    <div className="px-6 md:px-8 py-10 max-w-7xl mx-auto">
+      {showWelcome && (
+        <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4
+                        flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">Welcome aboard.</p>
+              <p className="text-sm text-emerald-800 mt-0.5">
+                Your email is verified. Add your first business to start tracking competitors.
+              </p>
             </div>
-            <button
-              onClick={() => setShowWelcome(false)}
-              className="text-green-600 hover:text-green-800"
-              aria-label="Dismiss"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
-        )}
+          <button
+            onClick={() => setShowWelcome(false)}
+            className="text-emerald-700 hover:text-emerald-900 transition-colors"
+            aria-label="Dismiss"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">My Businesses</h2>
-        <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-          <p className="text-gray-600 mb-6">
-            Coming soon! You'll be able to add and manage your businesses here.
-          </p>
-          <p className="text-gray-600 text-sm">
-            In the next session, we'll build the business list and competitor tracking interface.
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-zinc-900">
+            Businesses
+          </h1>
+          <p className="text-sm text-zinc-600 mt-1">
+            Track competitor activity for each of your businesses.
           </p>
         </div>
-      </main>
+        <Link href="/dashboard/businesses/new">
+          <Button leftIcon={<Plus className="h-4 w-4" />}>New business</Button>
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="bg-white border border-zinc-200 rounded-xl p-6 h-44 animate-pulse"
+            >
+              <div className="h-10 w-10 rounded-lg bg-zinc-200 mb-4" />
+              <div className="h-4 w-3/4 bg-zinc-200 rounded mb-2" />
+              <div className="h-3 w-1/2 bg-zinc-200 rounded mb-6" />
+              <div className="h-3 w-full bg-zinc-200 rounded" />
+            </div>
+          ))}
+        </div>
+      ) : businesses.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title="No businesses yet"
+          description="Add your first business to start tracking competitor pricing, features, hiring, and news."
+          action={
+            <Link href="/dashboard/businesses/new">
+              <Button leftIcon={<Plus className="h-4 w-4" />}>Add a business</Button>
+            </Link>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {businesses.map((b) => (
+            <BusinessCard key={b.id} business={b} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function Dashboard() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-gray-50">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="px-6 md:px-8 py-10 max-w-7xl mx-auto">
+          <div className="h-8 w-48 bg-zinc-200 rounded animate-pulse mb-8" />
+        </div>
+      }
+    >
       <DashboardContent />
     </Suspense>
   );
