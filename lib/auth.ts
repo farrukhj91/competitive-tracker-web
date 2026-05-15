@@ -1,9 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from './supabase';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+/**
+ * Auth helpers — all share the same cookie-based browser client from
+ * lib/supabase.ts so that sessions stay in sync with server-set cookies
+ * (email confirmation callback, middleware, etc.).
+ */
+export const supabase = createClient();
 
 export async function signUp(email: string, password: string) {
   const redirectTo =

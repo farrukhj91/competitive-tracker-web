@@ -39,7 +39,10 @@ export async function GET(request: Request) {
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!exchangeError) {
-      return NextResponse.redirect(`${origin}${next}`);
+      // Add ?welcome=true so the dashboard can show a confirmation banner.
+      // The dashboard reads this and dismisses the banner on close.
+      const separator = next.includes('?') ? '&' : '?';
+      return NextResponse.redirect(`${origin}${next}${separator}welcome=true`);
     }
 
     return NextResponse.redirect(
