@@ -3,9 +3,10 @@ import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const supabase = await createServerSupabaseClient();
 
     // Check if user is authenticated
@@ -22,7 +23,7 @@ export async function POST(
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id, user_email')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_email', user.email)
       .maybeSingle();
 
@@ -37,7 +38,7 @@ export async function POST(
     const { data: competitors, error: competitorError } = await supabase
       .from('competitors')
       .select('id')
-      .eq('business_id', params.id);
+      .eq('business_id', id);
 
     if (competitorError || !competitors || competitors.length === 0) {
       return NextResponse.json(
@@ -70,7 +71,7 @@ export async function POST(
       body: JSON.stringify({
         ref: 'main',
         inputs: {
-          business_id: params.id,
+          business_id: id,
         },
       }),
     });
@@ -87,7 +88,7 @@ export async function POST(
     return NextResponse.json({
       status: 'queued',
       message: `Crawl started for ${competitors.length} competitors`,
-      business_id: params.id,
+      business_id: id,
     });
   } catch (error) {
     console.error('[POST /api/businesses/[id]/crawl]', error);

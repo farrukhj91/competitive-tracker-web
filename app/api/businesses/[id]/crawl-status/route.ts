@@ -3,9 +3,10 @@ import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const supabase = await createServerSupabaseClient();
 
     // Check if user is authenticated
@@ -22,7 +23,7 @@ export async function GET(
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id, user_email')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_email', user.email)
       .maybeSingle();
 
@@ -37,7 +38,7 @@ export async function GET(
     const { data: competitors, error: competitorError } = await supabase
       .from('competitors')
       .select('id')
-      .eq('business_id', params.id);
+      .eq('business_id', id);
 
     if (competitorError) {
       return NextResponse.json({ error: 'Failed to fetch competitors' }, { status: 500 });
@@ -50,7 +51,7 @@ export async function GET(
     const { data: crawlResults, error: crawlError } = await supabase
       .from('crawl_results')
       .select('id, competitor_id, status')
-      .eq('business_id', params.id);
+      .eq('business_id', id);
 
     if (crawlError) {
       console.error('[crawl-status] crawl_results query error:', crawlError);
