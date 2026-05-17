@@ -78,9 +78,15 @@ export async function POST(
 
     if (!workflowResponse.ok) {
       const errorData = await workflowResponse.text();
-      console.error('[crawl] GitHub API error:', errorData);
+      console.error('[crawl] GitHub API error:', workflowResponse.status, errorData);
       return NextResponse.json(
-        { error: 'Failed to trigger crawl workflow' },
+        {
+          error: 'Failed to trigger crawl workflow',
+          github_status: workflowResponse.status,
+          github_error: errorData,
+          repo: githubRepo,
+          workflow_url: workflowUrl,
+        },
         { status: 500 },
       );
     }
