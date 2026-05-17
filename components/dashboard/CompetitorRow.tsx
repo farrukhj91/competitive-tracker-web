@@ -5,14 +5,7 @@ import { Pause, Play, Trash2, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDeleteModal } from '@/components/modals/ConfirmDeleteModal';
-
-interface Competitor {
-  id: string;
-  business_id: string;
-  name: string;
-  url: string;
-  is_active: boolean;
-}
+import type { Competitor } from '@/lib/db';
 
 interface CompetitorRowProps {
   competitor: Competitor;
