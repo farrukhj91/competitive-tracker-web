@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import type { Competitor } from '@/lib/db';
 
 interface AddCompetitorModalProps {
   businessId: string;
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (competitor: { id: string; business_id: string; name: string; url: string; linkedin_url: string | null; is_active: boolean }) => void;
+  onAdd: (competitor: Competitor) => void;
 }
 
 export function AddCompetitorModal({

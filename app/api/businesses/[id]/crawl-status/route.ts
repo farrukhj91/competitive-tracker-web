@@ -37,7 +37,7 @@ export async function GET(
     // Get total competitor count
     const { data: competitors, error: competitorError } = await supabase
       .from('competitors')
-      .select('id')
+      .select('id, name')
       .eq('business_id', id);
 
     if (competitorError) {
