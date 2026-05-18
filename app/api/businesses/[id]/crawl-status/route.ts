@@ -45,23 +45,31 @@ export async function GET(
     }
 
     const totalCompetitors = competitors?.length ?? 0;
+    const competitorIds = (competitors ?? []).map((c) => c.id);
 
-    // Get crawl results for this business (status, name for display)
-    // Assuming crawl_results has: id, business_id, competitor_id, status, started_at
-    const { data: crawlResults, error: crawlError } = await supabase
-      .from('crawl_results')
-      .select('id, competitor_id, status')
-      .eq('business_id', id);
+    // crawl_results has competitor_id (not business_id) — filter by competitor_id IN (...)
+    // and only consider results from the last 30 min so stale crawls don't pollute progress.
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
 
-    if (crawlError) {
-      console.error('[crawl-status] crawl_results query error:', crawlError);
-      return NextResponse.json(
-        { error: 'Failed to fetch crawl status' },
-        { status: 500 },
-      );
+    let crawlResults: Array<{ id: string; competitor_id: string; status: string }> = [];
+    if (competitorIds.length > 0) {
+      const { data, error: crawlError } = await supabase
+        .from('crawl_results')
+        .select('id, competitor_id, status, crawl_timestamp')
+        .in('competitor_id', competitorIds)
+        .gte('crawl_timestamp', thirtyMinAgo);
+
+      if (crawlError) {
+        console.error('[crawl-status] crawl_results query error:', crawlError);
+        return NextResponse.json(
+          { error: 'Failed to fetch crawl status', details: crawlError.message },
+          { status: 500 },
+        );
+      }
+      crawlResults = data ?? [];
     }
 
-    const results = crawlResults ?? [];
+    const results = crawlResults;
 
     // Count by status: look for the most recent crawl (same competitor_id, group by latest)
     // For simplicity, count any result with status="success" or "completed"
