@@ -28,7 +28,6 @@ export default function ReportPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'full' | 'summary'>('full');
 
   useEffect(() => {
     if (!businessId || !reportId) return;
@@ -75,10 +74,23 @@ export default function ReportPage() {
     );
   }
 
-  const html =
-    activeView === 'full'
-      ? report.full_report_html ?? report.summary_html ?? '<p>Empty report.</p>'
-      : report.summary_html ?? report.full_report_html ?? '<p>Empty report.</p>';
+  // Match the email layout: Executive Summary on top, divider, Full Report below.
+  // Both columns from the DB are stitched into one continuous document.
+  const summary = report.summary_html?.trim() || '';
+  const full = report.full_report_html?.trim() || '';
+
+  const html = (() => {
+    if (summary && full) {
+      return (
+        '<div class="section-title">Executive Summary</div>' +
+        summary +
+        '<hr class="section-break" />' +
+        '<div class="section-title">Full Report</div>' +
+        full
+      );
+    }
+    return summary || full || '<p>Empty report.</p>';
+  })();
 
   return (
     <div className="px-6 md:px-8 py-10 max-w-5xl mx-auto">
@@ -109,36 +121,6 @@ export default function ReportPage() {
           </p>
         </div>
 
-        {report.full_report_html && report.summary_html && (
-          <div className="inline-flex p-1 bg-zinc-100 rounded-lg" role="tablist">
-            <button
-              role="tab"
-              aria-selected={activeView === 'full'}
-              onClick={() => setActiveView('full')}
-              className={
-                'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ' +
-                (activeView === 'full'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900')
-              }
-            >
-              Full report
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeView === 'summary'}
-              onClick={() => setActiveView('summary')}
-              className={
-                'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ' +
-                (activeView === 'summary'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900')
-              }
-            >
-              Summary
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Report body */}
