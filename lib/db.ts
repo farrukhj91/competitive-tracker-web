@@ -169,6 +169,7 @@ export async function createBusiness(input: {
   name: string;
   url?: string;
   description?: string;
+  industry?: string;
 }): Promise<Business | null> {
   const email = await getCurrentEmail();
   if (!email) return null;
@@ -179,6 +180,7 @@ export async function createBusiness(input: {
       name: input.name,
       url: input.url || null,
       description: input.description || null,
+      industry: input.industry || null,
       user_email: email,
     })
     .select()
