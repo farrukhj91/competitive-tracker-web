@@ -77,16 +77,17 @@ export async function POST(
     });
 
     if (!workflowResponse.ok) {
+      // Log full detail server-side (Vercel function logs) so we can debug
+      // without leaking infrastructure info (repo, workflow URL, GitHub error
+      // body) to the browser.
       const errorData = await workflowResponse.text();
-      console.error('[crawl] GitHub API error:', workflowResponse.status, errorData);
+      console.error(
+        '[crawl] GitHub API error:',
+        workflowResponse.status,
+        errorData,
+      );
       return NextResponse.json(
-        {
-          error: 'Failed to trigger crawl workflow',
-          github_status: workflowResponse.status,
-          github_error: errorData,
-          repo: githubRepo,
-          workflow_url: workflowUrl,
-        },
+        { error: 'Failed to trigger crawl workflow' },
         { status: 500 },
       );
     }
