@@ -273,3 +273,164 @@ h1, h2, h3, h4, h5, h6 {
     border: 2px solid transparent;
   }
 }
+
+/* ===========================================================================
+   Stripe-inspired visual language — gradient mesh, angled bands, depth.
+=========================================================================== */
+
+/* Signature gradient wash. Vivid but low-opacity, sits under white content. */
+.mesh {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(at 8% 12%, rgba(99, 102, 241, 0.30) 0px, transparent 52%),
+    radial-gradient(at 78% 4%, rgba(56, 189, 248, 0.26) 0px, transparent 48%),
+    radial-gradient(at 62% 62%, rgba(168, 85, 247, 0.24) 0px, transparent 50%),
+    radial-gradient(at 22% 78%, rgba(45, 212, 191, 0.20) 0px, transparent 48%),
+    radial-gradient(at 95% 60%, rgba(251, 146, 60, 0.14) 0px, transparent 44%);
+}
+
+/* Deep variant for dark bands */
+.mesh-dark {
+  background-color: #18181b;
+  background-image:
+    radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.45) 0px, transparent 50%),
+    radial-gradient(at 82% 18%, rgba(56, 189, 248, 0.30) 0px, transparent 46%),
+    radial-gradient(at 55% 88%, rgba(168, 85, 247, 0.34) 0px, transparent 50%);
+}
+
+/* Angled bottom edge — the Stripe diagonal */
+.angled-b {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4.5vw), 0 100%);
+}
+.angled-t {
+  clip-path: polygon(0 4.5vw, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Gradient text */
+.gradient-text {
+  background-image: linear-gradient(100deg, #4f46e5 0%, #7c3aed 42%, #0ea5e9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* keep descenders from clipping */
+  padding-bottom: 0.08em;
+}
+
+/* Fine dot grid texture */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(161, 161, 170, 0.4) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Layered elevation for floating product cards */
+.float-card {
+  box-shadow:
+    0 1px 2px rgba(24, 24, 27, 0.04),
+    0 4px 12px rgba(24, 24, 27, 0.05),
+    0 16px 40px rgba(24, 24, 27, 0.07),
+    0 40px 88px rgba(24, 24, 27, 0.06);
+}
+
+.float-card-sm {
+  box-shadow:
+    0 1px 2px rgba(24, 24, 27, 0.04),
+    0 6px 18px rgba(24, 24, 27, 0.06),
+    0 18px 44px rgba(24, 24, 27, 0.05);
+}
+
+/* Gradient-filled icon chip */
+.chip-gradient {
+  background-image: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #0ea5e9 100%);
+  color: #ffffff;
+}
+
+/* 1px gradient border via mask */
+.gradient-ring {
+  position: relative;
+}
+.gradient-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.55), rgba(14, 165, 233, 0.35), rgba(168, 85, 247, 0.45));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Soft glow behind a focal element */
+.glow::after {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(99, 102, 241, 0.22), transparent 72%);
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+/* ===========================================================================
+   Motion — scroll-driven reveals, CSS only. Degrades to fully visible
+   where animation-timeline is unsupported, so content is never hidden.
+=========================================================================== */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Soft pulse for live indicators */
+@media (prefers-reduced-motion: no-preference) {
+  .pulse-dot {
+    animation: pulse-soft 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Card hover lift */
+.lift {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 2px 4px rgba(24, 24, 27, 0.04),
+    0 10px 24px rgba(24, 24, 27, 0.07),
+    0 24px 56px rgba(24, 24, 27, 0.07);
+}
+
+/* Slow drift on decorative orbs */
+@media (prefers-reduced-motion: no-preference) {
+  .drift {
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-24px, 18px, 0) scale(1.06); }
+}
