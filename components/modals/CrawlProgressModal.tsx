@@ -68,8 +68,8 @@ export function CrawlProgressModal({ businessId, isOpen, onClose }: CrawlProgres
   const isFailed = status?.status === 'failed';
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6">
+    <div className="fixed inset-0 z-50 bg-zinc-950/40 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl elev-2 border border-zinc-200/70 max-w-lg w-full p-7">
         {/* Header with close button */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-zinc-900">Crawl in progress</h2>

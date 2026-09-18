@@ -32,16 +32,14 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
   return (
     <Link
       href={`/dashboard/businesses/${business.id}`}
-      className="group block bg-white border border-zinc-200 rounded-xl p-6
-                 shadow-sm hover:shadow-md hover:border-zinc-300 hover:-translate-y-0.5
-                 transition-all duration-200
-                 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      className="group block bg-white border border-zinc-200/70 rounded-2xl p-6 elev-1 lift
+                 hover:border-zinc-300
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="flex items-center justify-center h-10 w-10 rounded-lg
-                          bg-gradient-to-br from-indigo-500 to-indigo-700 text-white
-                          font-semibold text-sm shadow-sm flex-shrink-0">
+          <div className="flex items-center justify-center h-10 w-10 rounded-xl
+                          bg-zinc-900 text-white font-semibold text-sm flex-shrink-0">
             {business.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
@@ -49,7 +47,7 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
               {business.name}
             </h3>
             {cleanUrl(business.url) && (
-              <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5 truncate">
+              <p className="text-xs text-zinc-400 flex items-center gap-1 mt-1 truncate">
                 <Globe className="h-3 w-3 flex-shrink-0" />
                 {cleanUrl(business.url)}
               </p>
@@ -60,13 +58,13 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
       </div>
 
       {business.description && (
-        <p className="text-sm text-zinc-600 mb-4 line-clamp-2 leading-relaxed">
+        <p className="text-sm text-zinc-500 mb-5 line-clamp-2 leading-relaxed">
           {business.description}
         </p>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t border-zinc-100">
-        <div className="flex items-center gap-4 text-xs text-zinc-500">
+      <div className="flex items-center justify-between pt-4 border-t border-zinc-200/70">
+        <div className="flex items-center gap-4 text-xs text-zinc-400">
           <span className="flex items-center gap-1">
             <Users className="h-3.5 w-3.5" />
             {business.competitor_count} competitor{business.competitor_count === 1 ? '' : 's'}

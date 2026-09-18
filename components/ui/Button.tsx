@@ -1,6 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'inverse' | 'inverseOutline' | 'destructive';
 type Size = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -12,31 +12,38 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  'inline-flex items-center justify-center gap-2 font-medium rounded-lg ' +
-  'transition-all duration-200 ' +
+  'inline-flex items-center justify-center gap-2 font-medium rounded-full whitespace-nowrap ' +
+  'transition-[background-color,border-color,color,box-shadow,transform] duration-200 ' +
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ' +
-  'disabled:opacity-50 disabled:cursor-not-allowed ' +
-  'active:scale-[0.98]';
+  'disabled:opacity-40 disabled:cursor-not-allowed ' +
+  'active:scale-[0.985]';
 
 const variants: Record<Variant, string> = {
   primary:
     'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 ' +
-    'focus-visible:ring-indigo-500 shadow-sm',
+    'focus-visible:ring-indigo-600 shadow-[0_1px_2px_rgba(9,9,11,0.08)]',
   secondary:
-    'bg-white border border-zinc-300 text-zinc-900 hover:bg-zinc-50 ' +
-    'active:bg-zinc-100 focus-visible:ring-indigo-500 shadow-sm',
+    'bg-white text-zinc-900 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 ' +
+    'active:bg-zinc-100 focus-visible:ring-zinc-900 shadow-[0_1px_2px_rgba(9,9,11,0.04)]',
   ghost:
     'bg-transparent text-zinc-700 hover:bg-zinc-100 active:bg-zinc-200 ' +
-    'focus-visible:ring-indigo-500',
+    'focus-visible:ring-zinc-900',
+  // For use on ink surfaces.
+  inverse:
+    'bg-white text-zinc-900 hover:bg-zinc-100 active:bg-zinc-200 ' +
+    'focus-visible:ring-white focus-visible:ring-offset-zinc-950',
+  inverseOutline:
+    'bg-transparent text-white border border-white/20 hover:bg-white/10 active:bg-white/15 ' +
+    'focus-visible:ring-white focus-visible:ring-offset-zinc-950',
   destructive:
     'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 ' +
-    'focus-visible:ring-red-500 shadow-sm',
+    'focus-visible:ring-red-600',
 };
 
 const sizes: Record<Size, string> = {
-  sm: 'text-xs px-3 py-1.5 h-8',
-  md: 'text-sm px-4 py-2.5 h-10',
-  lg: 'text-base px-5 py-3 h-12',
+  sm: 'text-[13px] px-3.5 h-8',
+  md: 'text-sm px-5 h-10',
+  lg: 'text-[15px] px-6 h-12',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(

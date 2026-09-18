@@ -25,8 +25,8 @@ export function ConfirmDeleteModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+    <div className="fixed inset-0 z-50 bg-zinc-950/40 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl elev-2 border border-zinc-200/70 max-w-sm w-full p-7">
         {/* Close button */}
         <button
           onClick={onCancel}

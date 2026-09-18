@@ -8,20 +8,22 @@ interface BadgeProps {
   className?: string;
 }
 
+/* Tinted fills, no hard borders — borders on small chips read as clutter
+   at this size and fight the hairline rhythm of the rest of the page. */
 const tones: Record<Tone, string> = {
-  neutral: 'bg-zinc-100 text-zinc-700 border-zinc-200',
-  indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  warning: 'bg-amber-50 text-amber-700 border-amber-200',
-  destructive: 'bg-red-50 text-red-700 border-red-200',
+  neutral: 'bg-zinc-100 text-zinc-600',
+  indigo: 'bg-indigo-50 text-indigo-700',
+  success: 'bg-emerald-50 text-emerald-700',
+  warning: 'bg-amber-50 text-amber-700',
+  destructive: 'bg-red-50 text-red-600',
 };
 
 export function Badge({ tone = 'neutral', children, className = '' }: BadgeProps) {
   return (
     <span
       className={
-        `inline-flex items-center gap-1 px-2 py-0.5 rounded-md ` +
-        `text-xs font-medium border ${tones[tone]} ${className}`
+        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ' +
+        `text-[11px] font-medium leading-none ${tones[tone]} ${className}`
       }
     >
       {children}

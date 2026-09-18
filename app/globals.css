@@ -275,106 +275,97 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ===========================================================================
-   Stripe-inspired visual language — gradient mesh, angled bands, depth.
+   Visual language v2 — quiet surfaces, one accent, type does the work.
+
+   Deliberately removed in this pass: five-colour mesh gradients, gradient
+   headline text, angled clip-path seams, dot-grid overlays, gradient icon
+   chips, gradient borders and drifting orbs. They read as decoration, and
+   decoration is what stops a page feeling premium. What replaces them:
+   ink surfaces, hairlines, one honest shadow scale and tight type.
 =========================================================================== */
 
-/* Signature gradient wash. Vivid but low-opacity, sits under white content. */
-.mesh {
-  background-color: #ffffff;
+/* --- Ink surfaces ---------------------------------------------------- */
+
+.surface-ink {
+  background-color: #09090b;
+  color: #fafafa;
+}
+
+/* A single barely-there wash so large black areas aren't dead flat.
+   One hue only — never a rainbow. */
+.surface-ink-wash {
+  background-color: #09090b;
   background-image:
-    radial-gradient(at 8% 12%, rgba(99, 102, 241, 0.30) 0px, transparent 52%),
-    radial-gradient(at 78% 4%, rgba(56, 189, 248, 0.26) 0px, transparent 48%),
-    radial-gradient(at 62% 62%, rgba(168, 85, 247, 0.24) 0px, transparent 50%),
-    radial-gradient(at 22% 78%, rgba(45, 212, 191, 0.20) 0px, transparent 48%),
-    radial-gradient(at 95% 60%, rgba(251, 146, 60, 0.14) 0px, transparent 44%);
+    radial-gradient(120% 90% at 50% -20%, rgba(99, 102, 241, 0.20) 0%, transparent 62%),
+    radial-gradient(70% 60% at 90% 4%, rgba(99, 102, 241, 0.10) 0%, transparent 70%);
 }
 
-/* Deep variant for dark bands */
-.mesh-dark {
-  background-color: #18181b;
-  background-image:
-    radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.45) 0px, transparent 50%),
-    radial-gradient(at 82% 18%, rgba(56, 189, 248, 0.30) 0px, transparent 46%),
-    radial-gradient(at 55% 88%, rgba(168, 85, 247, 0.34) 0px, transparent 50%);
+/* --- Soft tinted panels ---------------------------------------------- */
+
+/* Borderless pastel panel used as a visual slot beside feature copy. */
+.panel-soft {
+  background-image: linear-gradient(145deg, #f1f2fe 0%, #fafbff 46%, #f5f6f8 100%);
 }
 
-/* Angled bottom edge — the Stripe diagonal */
-.angled-b {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4.5vw), 0 100%);
-}
-.angled-t {
-  clip-path: polygon(0 4.5vw, 100% 0, 100% 100%, 0 100%);
+.panel-muted {
+  background-color: #f7f7f8;
 }
 
-/* Gradient text */
-.gradient-text {
-  background-image: linear-gradient(100deg, #4f46e5 0%, #7c3aed 42%, #0ea5e9 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  /* keep descenders from clipping */
-  padding-bottom: 0.08em;
-}
+/* --- Depth — one shadow scale, three weights ------------------------- */
 
-/* Fine dot grid texture */
-.dot-grid {
-  background-image: radial-gradient(circle, rgba(161, 161, 170, 0.4) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-
-/* Layered elevation for floating product cards */
-.float-card {
+.elev-1 {
   box-shadow:
-    0 1px 2px rgba(24, 24, 27, 0.04),
-    0 4px 12px rgba(24, 24, 27, 0.05),
-    0 16px 40px rgba(24, 24, 27, 0.07),
-    0 40px 88px rgba(24, 24, 27, 0.06);
+    0 1px 2px rgba(9, 9, 11, 0.04),
+    0 2px 8px rgba(9, 9, 11, 0.04);
 }
 
-.float-card-sm {
+.elev-2 {
   box-shadow:
-    0 1px 2px rgba(24, 24, 27, 0.04),
-    0 6px 18px rgba(24, 24, 27, 0.06),
-    0 18px 44px rgba(24, 24, 27, 0.05);
+    0 1px 2px rgba(9, 9, 11, 0.04),
+    0 8px 24px rgba(9, 9, 11, 0.06),
+    0 24px 64px rgba(9, 9, 11, 0.07);
 }
 
-/* Gradient-filled icon chip */
-.chip-gradient {
-  background-image: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #0ea5e9 100%);
-  color: #ffffff;
+/* For elements floating over an ink surface. */
+.elev-ink {
+  box-shadow:
+    0 2px 8px rgba(9, 9, 11, 0.28),
+    0 24px 64px rgba(9, 9, 11, 0.42);
 }
 
-/* 1px gradient border via mask */
-.gradient-ring {
-  position: relative;
-}
-.gradient-ring::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.55), rgba(14, 165, 233, 0.35), rgba(168, 85, 247, 0.45));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+/* --- Hairlines -------------------------------------------------------- */
+
+.hairline {
+  border-color: rgba(9, 9, 11, 0.08);
 }
 
-/* Soft glow behind a focal element */
-.glow::after {
-  content: '';
-  position: absolute;
-  inset: -18%;
-  z-index: -1;
-  background: radial-gradient(closest-side, rgba(99, 102, 241, 0.22), transparent 72%);
-  filter: blur(28px);
-  pointer-events: none;
+.hairline-light {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+/* --- Type ------------------------------------------------------------- */
+
+/* Display tracking. Geist needs to be pulled tighter than Tailwind's
+   tracking-tight once you pass ~40px or it looks loose and cheap. */
+.display {
+  letter-spacing: -0.035em;
+}
+
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.balance {
+  text-wrap: balance;
 }
 
 /* ===========================================================================
-   Motion — scroll-driven reveals, CSS only. Degrades to fully visible
-   where animation-timeline is unsupported, so content is never hidden.
+   Motion — CSS only, scroll-driven where supported. Degrades to fully
+   visible, so content is never hidden by a missing feature.
 =========================================================================== */
 
 @supports (animation-timeline: view()) {
@@ -382,7 +373,7 @@ h1, h2, h3, h4, h5, h6 {
     .reveal {
       animation: reveal-in linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 55%;
+      animation-range: entry 0% entry 50%;
     }
   }
 }
@@ -390,7 +381,7 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes reveal-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -407,30 +398,22 @@ h1, h2, h3, h4, h5, h6 {
 
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+  50% { opacity: 0.3; }
 }
 
-/* Card hover lift */
+/* Card hover — border and shadow shift, a barely perceptible rise.
+   No scale: scaling type re-rasterises it and looks cheap. */
 .lift {
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease;
 }
+
 .lift:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow:
-    0 2px 4px rgba(24, 24, 27, 0.04),
-    0 10px 24px rgba(24, 24, 27, 0.07),
-    0 24px 56px rgba(24, 24, 27, 0.07);
-}
-
-/* Slow drift on decorative orbs */
-@media (prefers-reduced-motion: no-preference) {
-  .drift {
-    animation: drift 18s ease-in-out infinite alternate;
-  }
-}
-
-@keyframes drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to   { transform: translate3d(-24px, 18px, 0) scale(1.06); }
+    0 1px 2px rgba(9, 9, 11, 0.04),
+    0 10px 28px rgba(9, 9, 11, 0.07),
+    0 24px 56px rgba(9, 9, 11, 0.06);
 }

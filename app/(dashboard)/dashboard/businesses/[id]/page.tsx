@@ -142,8 +142,7 @@ export default function BusinessView() {
       <div className="flex items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4 min-w-0">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl
-                          bg-gradient-to-br from-indigo-500 to-indigo-700 text-white
-                          font-semibold shadow-sm flex-shrink-0">
+                          bg-zinc-900 text-white font-semibold flex-shrink-0">
             {business.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
