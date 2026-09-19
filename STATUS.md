@@ -34,42 +34,30 @@ another document, this one is newer.
 
 ## Broken right now
 
-### P0 — Anthropic credit balance is exhausted
+### ~~P0 — Anthropic credit balance is exhausted~~ — RESOLVED, and the diagnosis was stale
 
-Every scheduled run since at least 15 Sep has failed. From run
-`35198995626` (17 Sep):
+**Verified clear on 19 Sep** by dispatch run `#35437983923` (business Frixals,
+`success`, 2m41s). Checked by content, not by the exit code:
 
-```
-report_generator - ERROR - Failed to generate recommendations: Error code: 400
-  'Your credit balance is too low to access the Anthropic API.'
-Completed: 0 successful, 6 skipped, 2 failed (out of 10 businesses)
-##[error]Process completed with exit code 1
-```
+- `credit balance is too low` — **0 occurrences** in the run log
+- `Failed to generate recommendations` — **0**
+- no `- ERROR -` lines of any kind
+- report summary 3637 chars with genuine recommendations, against ~2400–2600
+  chars of fallback boilerplate on 17–18 Sep
 
-**Why this is easy to miss:** the dashboard looks healthy. Crawl results and
-report rows are still written, so "Last crawl" and the report list both look
-current — but every report is being produced *without* its AI recommendations.
-The valuable half is silently absent.
+**The credit balance had already recovered before the manual top-up.** The
+07:43 scheduled run on 19 Sep also produced real recommendations (3577-char
+summary, no fallback text) and logged no credit error. So this section was
+already describing a fixed problem when Session 5 began. Whatever restored the
+balance is unconfirmed — worth checking the Anthropic console, since a top-up
+may have stacked on an already-positive balance.
 
-**Still live as of 18 Sep 07:52** — scheduled run `#35321544127` failed the
-same way.
-
-**And a manual trigger does not escape it.** The successful dispatch run
-`#35313862212` (business "Frixals") *also* hit the credit error:
-
-```
-report_generator - ERROR - Failed to generate recommendations:
-  'Your credit balance is too low to access the Anthropic API.'
-```
-
-It still reported `success`, because a single-business run whose recommendations
-fail does not trip the exit code — the report saves without them. **So neither
-the exit code nor the dashboard is a health signal.** A green run can still
-produce a degraded report. This is tech-debt item 13 in `TECH-STACK.md`, and it
-is the strongest argument for alerting on content rather than on status.
-
-**Fix:** top up at console.anthropic.com. This blocks nearly everything else,
-so do it first.
+**How to tell a degraded report from a good one**, since this will recur:
+`_generate_recommendations` writes into `summary_html`, **not**
+`full_report_html` — checking the wrong column makes a healthy report look
+broken. The tell is `summary_html ILIKE '%Monitor competitors for strategic
+insights%'` or `'%Continue Monitoring%'`; those two strings are the fallback,
+and a degraded summary runs roughly 1000 characters shorter.
 
 ### ~~P1 — `GITHUB_PAT` in Vercel is rejected by GitHub~~ — RESOLVED 18 Sep
 
@@ -102,11 +90,32 @@ longer expiry) → update `GITHUB_PAT` in Vercel **Production** → **redeploy**
 Vercel env changes do not reach existing deployments; the running function keeps
 the old value until a new build ships.
 
-### P2 — Resend is still a sandbox sender
+### P1 — Resend sandbox sender is what turns the nightly run red
 
-`onboarding@resend.dev` only delivers to `farrukh.jamal91@gmail.com`. Every
-other recipient gets a 403. Confirmed live in the same 17 Sep run. Blocks any
-real user receiving a report. Fix: verify a domain at resend.com/domains.
+**Promoted from P2 on 19 Sep.** With the credit issue gone, this is now the
+top live failure. `onboarding@resend.dev` only delivers to
+`farrukh.jamal91@gmail.com`; every other recipient gets a 403. The second
+account's businesses therefore fail at the *email send* step — the crawl and
+the report both succeed first:
+
+```
+src.email_sender - ERROR - Resend API error 403: You can only send testing
+  emails to your own email address (farrukh.jamal91@gmail.com).
+__main__ - ERROR - Failed to send report email
+Completed: 0 successful, 6 skipped, 2 failed (out of 10 businesses)
+##[error]Process completed with exit code 1
+```
+
+That is run `#35430114796`, 19 Sep 07:43. **No credit error anywhere in it** —
+so anyone reading "red nightly run" as "still out of credit" will chase the
+wrong thing. Fix: verify a domain at resend.com/domains and change the `from`
+address. Until then every scheduled run exits non-zero regardless of how well
+the crawl went.
+
+**Open question, not yet chased:** that completion line accounts for only 8 of
+10 businesses (0 + 6 + 2). Either the tally or the iteration is wrong in
+`scheduler.py`. Low severity, but it undermines the one summary line anyone
+actually reads.
 
 ### P2 — RLS disabled on all five tables
 
@@ -230,10 +239,9 @@ live (`a06f7c2`, `2f80447`) · Winnow verified and rejected.
 
 **Still to do, in this order:**
 
-1. **Top up Anthropic credit** — still P0, still blocks the most. Verify
-   recovery by reading the run log for the *absence* of the credit error, not
-   by a green tick: run `#35313862212` returned `success` while failing this
-   way.
+1. ~~Top up Anthropic credit~~ — **done and verified 19 Sep** (`#35437983923`).
+   The balance had in fact already recovered beforehand. **Verify a Resend
+   domain instead** — that is now the thing keeping the nightly run red.
 2. **Rotate the Supabase service-role key.** Deleting the local copy from
    `.env.local` did not revoke it, and it sat on disk since May. It is the one
    credential that bypasses RLS entirely.
@@ -247,6 +255,16 @@ live (`a06f7c2`, `2f80447`) · Winnow verified and rejected.
    (Winnow is out, Lodestar unverified), Inngest, the global/tenant schema
    split, eval harness v0.
 
-**Note for whoever picks this up:** the quota and cost tables were born with
-RLS enabled and correct policies. The five original tables were not. Enabling
-RLS on those five is the remaining gap, not a from-scratch job.
+**Notes for whoever picks this up:**
+
+- The quota and cost tables were born with RLS enabled and correct policies.
+  The five original tables were not. Enabling RLS on those five is the
+  remaining gap, not a from-scratch job.
+- **The cost ledger works end to end.** First real row, from dispatch run
+  `#35437983923`: `report` / `claude-opus-4-7` / 853 in / 624 out /
+  `$0.019865`, attributed to the right account. One change-tracking report on
+  five competitors costs about two cents, which is the first real input to
+  unit economics.
+- **Judge run health by log content, never by the exit code or the dashboard.**
+  A green run can produce a degraded report, and a red run can mean nothing
+  worse than an undeliverable email.
