@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { parseQuotaError } from '@/lib/quota';
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,6 +63,10 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error('[competitors/add]', insertError);
+        const quotaMessage = parseQuotaError(insertError.message);
+        if (quotaMessage) {
+          return NextResponse.json({ error: quotaMessage }, { status: 429 });
+        }
         return NextResponse.json({ error: 'Failed to add competitor' }, { status: 500 });
       }
 
@@ -146,6 +151,11 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error('[competitors/pause]', updateError);
+        // Resuming a competitor can push the business past its active limit.
+        const quotaMessage = parseQuotaError(updateError.message);
+        if (quotaMessage) {
+          return NextResponse.json({ error: quotaMessage }, { status: 429 });
+        }
         return NextResponse.json({ error: 'Failed to pause competitor' }, { status: 500 });
       }
 

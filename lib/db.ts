@@ -10,6 +10,7 @@
  */
 
 import { supabase } from './auth';
+import { parseQuotaError } from './quota';
 
 export interface Business {
   id: string;
@@ -188,7 +189,12 @@ export async function createBusiness(input: {
 
   if (error) {
     console.error('[createBusiness] error:', error);
-    throw new Error(error.message);
+    // The limit is enforced by a database trigger rather than here, because
+    // this function runs in the browser — a check in this file would be
+    // bypassed by a direct PostgREST call. Translate the trigger's raw
+    // message into something a user can act on.
+    const quotaMessage = parseQuotaError(error.message);
+    throw new Error(quotaMessage ?? error.message);
   }
   return data;
 }

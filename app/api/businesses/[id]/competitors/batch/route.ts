@@ -90,9 +90,33 @@ export async function POST(
       );
     }
 
+    // Cap against the plan limit before inserting. The database trigger is the
+    // real enforcement, but it fires per row and would fail the whole batch —
+    // so read the limit, count what is already active, and insert only what
+    // fits. Anything over comes in paused rather than being dropped, so the
+    // user keeps the research and chooses which five to run.
+    const { data: limitRow } = await supabase
+      .from('plan_limits')
+      .select('limit_value')
+      .eq('tier', 'mvp')
+      .eq('metric', 'competitors_per_business')
+      .maybeSingle();
+
+    const limit = limitRow?.limit_value ?? 5;
+
+    const { count: activeCount } = await supabase
+      .from('competitors')
+      .select('id', { count: 'exact', head: true })
+      .eq('business_id', id)
+      .eq('is_active', true);
+
+    const slotsLeft = Math.max(0, limit - (activeCount ?? 0));
+    const capped = rows.map((r, i) => ({ ...r, is_active: i < slotsLeft }));
+    const pausedCount = capped.length - Math.min(capped.length, slotsLeft);
+
     const { data: inserted, error: insertError } = await supabase
       .from('competitors')
-      .insert(rows)
+      .insert(capped)
       .select();
 
     if (insertError) {
@@ -103,7 +127,12 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ inserted: inserted ?? [] });
+    return NextResponse.json({
+      inserted: inserted ?? [],
+      active: Math.min(capped.length, slotsLeft),
+      paused: pausedCount,
+      limit,
+    });
   } catch (error) {
     console.error('[POST /api/businesses/[id]/competitors/batch]', error);
     const message = error instanceof Error ? error.message : 'Internal server error';

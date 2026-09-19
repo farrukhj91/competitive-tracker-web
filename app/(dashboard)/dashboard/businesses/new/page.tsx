@@ -19,6 +19,13 @@ import { createBusiness } from '@/lib/db';
 
 type Step = 'info' | 'researching' | 'select' | 'launching';
 
+/**
+ * Active competitors allowed per business on the MVP plan. The database
+ * `plan_limits` row is the source of truth and a trigger enforces it; this
+ * mirrors it so the wizard doesn't pre-select more than can actually run.
+ */
+const COMPETITOR_LIMIT = 5;
+
 interface Candidate {
   name: string;
   url: string;
@@ -107,9 +114,11 @@ export default function NewBusinessWizard() {
           return;
         }
         setCandidates(cands);
-        // Default-select the top 8 (or all if fewer)
+        // Default-select up to the plan limit. Anything selected beyond it is
+        // saved paused rather than dropped, but pre-selecting more than can
+        // run would set the wrong expectation.
         const defaultSelected = new Set<number>();
-        cands.slice(0, 8).forEach((_, i) => defaultSelected.add(i));
+        cands.slice(0, COMPETITOR_LIMIT).forEach((_, i) => defaultSelected.add(i));
         setSelected(defaultSelected);
         setStep('select');
       } catch (e) {
@@ -153,17 +162,29 @@ export default function NewBusinessWizard() {
         throw new Error(insertData.error || 'Failed to save competitors');
       }
 
-      // Trigger first crawl
+      // Trigger first crawl. Don't block the redirect on it — they can retry
+      // from the business page — but do pass the reason through rather than
+      // swallowing it, so "nothing happened" is never unexplained.
       const crawlRes = await fetch(`/api/businesses/${businessId}/crawl`, {
         method: 'POST',
       });
-      if (!crawlRes.ok) {
-        // Don't block — they can manually trigger from business page
-        console.warn('[wizard] crawl trigger failed, user can retry manually');
+
+      if (crawlRes.ok) {
+        router.push(`/dashboard/businesses/${businessId}?crawl=started`);
+        return;
       }
 
-      // Redirect to business page; CrawlProgressModal will pick up live status
-      router.push(`/dashboard/businesses/${businessId}?crawl=started`);
+      let reason = 'failed';
+      try {
+        const crawlData = await crawlRes.json();
+        if (crawlData?.error) reason = crawlData.error;
+      } catch {
+        // Non-JSON error body — the generic reason stands.
+      }
+      console.warn('[wizard] crawl trigger failed:', reason);
+      router.push(
+        `/dashboard/businesses/${businessId}?crawl=failed&reason=${encodeURIComponent(reason)}`,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
       setStep('select');
