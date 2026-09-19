@@ -1,6 +1,6 @@
 # Status — read this first
 
-**As of 18 September 2026.** This is the single place recording what is
+**As of 19 September 2026.** This is the single place recording what is
 actually true about the running system right now: what works, what is broken,
 what is blocked behind what, and what is sitting uncommitted. Plans live in
 `BUILD-PLAN.md`; this file is reality.
@@ -18,7 +18,19 @@ another document, this one is newer.
 - **Dashboard** — businesses, competitors, report history, report viewer.
 - **Nightly crawl fires on schedule** — GitHub Actions cron `0 3 * * *`. Rows
   are written to `crawl_results` and `reports` every night.
-- **10 businesses** now exist in the database.
+- **10 businesses** across **2 accounts**; 44 competitors, of which **15 are
+  active** after the quota backfill below.
+- **Per-account quotas are live** (Session 5, 19 Sep) — 1 business, 5 active
+  competitors per business, 3 manual crawls per day. Enforced by database
+  triggers and a `SECURITY DEFINER` function, *not* by route handlers:
+  `createBusiness` runs in the browser, so with RLS off an application-code
+  check is bypassed by one direct PostgREST call. `usage_counters` has RLS on
+  with no policies at all, so a client holding the publishable key can neither
+  read nor reset a counter — verified as the `authenticated` role.
+  Migration: `../my-tracker/migrations/002_quotas.sql`.
+- **Cost ledger is live** — `token_usage` + `model_prices`, with cost computed
+  at write time. Wired into the web research route and all three Python call
+  sites. `../my-tracker/migrations/003_token_usage.sql`.
 
 ## Broken right now
 
@@ -120,76 +132,121 @@ So the project's identity and the fact that RLS is off are already on the open
 internet, next to each other, in a file anyone can read. Treat RLS as a live
 incident rather than scheduled hygiene.
 
-### P3 — 6 of 10 businesses have no competitors
+### P3 — 4 of 10 businesses have no competitors
 
 They return `skipped` every night. Harmless (the 3-state return in
-`scheduler.py` distinguishes skipped from failed) but it means most of the
-database is inert.
+`scheduler.py` distinguishes skipped from failed) but it means much of the
+database is inert. *(Counted live on 19 Sep — an earlier version of this file
+said 6, which was wrong.)*
 
 ## Blocked behind the above
 
 - **Onboarding wizard competitor discovery** — needs `ANTHROPIC_API_KEY` set in
   Vercel *and* credit on the account. Both currently missing.
-- **Phase 3 SQL migration** never run. Needed by the wizard:
-  ```sql
-  ALTER TABLE competitors ADD COLUMN IF NOT EXISTS description TEXT;
-  ALTER TABLE competitors ADD COLUMN IF NOT EXISTS overlap_reason TEXT;
-  ALTER TABLE competitors ADD COLUMN IF NOT EXISTS confidence_score NUMERIC(3,2);
-  ALTER TABLE businesses ADD COLUMN IF NOT EXISTS industry VARCHAR(255);
-  ```
-- **Rebrand** — "Winnow" is still unverified for domain and trademark.
-  Lodestar was the stated fallback. Nothing has been renamed.
+- ~~**Phase 3 SQL migration** never run~~ — **already applied.** Checked
+  against the live schema on 19 Sep: `competitors.description`,
+  `competitors.overlap_reason`, `competitors.confidence_score` and
+  `businesses.industry` all exist. This was stale; the wizard is blocked only
+  on `ANTHROPIC_API_KEY` and credit.
+- **Rebrand — "Winnow" is dead. Do not use it.** Checked 19 Sep.
+  *Domains:* every sensible variant is registered — `winnow.com` (1998,
+  **MarkMonitor**, a corporate brand-protection registrar), `winnow.io` (2020,
+  locked), `usewinnow.com`, `winnowhq.com`, `trywinnow.com`, and
+  `getwinnow.com` (held on Afternic to resell).
+  *Name collisions in software:* **Winnow** (food-waste AI, London, ~$26.3M
+  revenue, Hilton/Accor/IKEA), **Winnow** (`winnow.law`, RegTech), and
+  decisively **WinnowPro** (San Mateo), whose product is literally named
+  **"Competitive Intelligence Tool (CIT)"** — same name, same goods class,
+  adjacent buyer.
+  *Not established:* a formal USPTO register search. That is a trademark
+  attorney's job, and a clean register would not rescue the name anyway.
+  **Lodestar is not a safe fallback either** — it is a common mark across
+  finance and logistics. Generate three or four candidates and clear them as a
+  batch rather than falling back serially.
 
-## Uncommitted, deliberately
+## Commit decision — RESOLVED 19 Sep
 
-`competitive-tracker-web` **is a public repo.** The design system v2 code was
-pushed (`787da21`); the documentation was not.
+The documentation is committed and pushed. `competitive-tracker-web` commit
+`6562888` carries `CLAUDE.md`, `README.md`, `TECH-STACK.md`, `BUILD-PLAN.md`,
+`STATUS.md`, `SECRETS-AND-ACCESS.md`, `.env.example` and `.gitignore`;
+`my-tracker` commit `45e4e6f` carries its `CLAUDE.md`.
 
-Still uncommitted in the working tree: `CLAUDE.md`, `TECH-STACK.md`,
-`BUILD-PLAN.md`, `README.md`, `STATUS.md`, `SECRETS-AND-ACCESS.md`,
-`.env.example`, `.gitignore`.
+**The reasoning, kept because it is the part worth remembering.** The original
+decision to withhold assumed committing would be a *new* disclosure. It was
+not. Verified before staging: `pm-competitive-research-tracker` is public,
+`origin/main` matches local `HEAD`, and its committed `CLAUDE.md` has carried
+the Supabase URL and project ID (lines 41–42) twelve lines from "**RLS is
+DISABLED** on all tables" (line 54) since May 2026.
 
-Those files describe, accurately and in detail, that RLS is off and why that is
-exploitable. Committing them to a public repo publishes a working exploit guide
-for a live database holding real data, while the hole is still open. The
-information is technically derivable by anyone who opens devtools — the
-difference is that today it takes curiosity, and committed it takes a GitHub
-search.
+So withholding bought attacker *inconvenience*, not protection, while costing
+documentation quality. What the web repo's docs add is a better **map** — the
+five table names, the fact that the publishable key ships in the browser
+bundle, and that `user_email` filtering only constrains our own queries. That
+is a real delta, but a delta in convenience rather than capability: all of it
+is derivable from devtools in ten minutes.
 
-**Correction (18 Sep, later the same day).** The reasoning above was built on
-the premise that committing these docs would be a *new* disclosure. That premise
-was wrong. The public `pm-competitive-research-tracker` repo has published the
-Supabase project ID alongside "RLS is DISABLED on all tables" since May 2026.
+**Neither committing nor withholding closes the hole.** Fixing RLS does. That
+is why it is next.
 
-Withholding the web repo's documentation therefore buys very little, while
-costing documentation quality. The decision that actually matters is not what to
-commit — it is **fixing RLS, or making both repos private, or both**.
+Still held back deliberately: **`MARKET-RESEARCH.md`**. Its uncommitted diff
+adds a teardown of a named live competitor including their founder, the
+pricing hypothesis, and the analysis of why competitors structurally cannot
+follow. Publishing competitive strategy to the competitors it analyses is a
+separate decision from the security one, and has not been taken.
 
-**Options:** (a) fix RLS, then commit freely — recommended, and now urgent
-rather than tidy; (b) make both repos private today as a stopgap, then commit;
-(c) commit as-is on the basis that the information is already public — defensible,
-and no longer the reckless option it appeared to be. Awaiting a decision.
+Now gitignored rather than committed: `*.docx` (generated from the `.md`
+sources; binary, unreviewable in diffs, and `Winnow-Overview.docx` would have
+published an unverified brand name) and `.claude/*` except `launch.json`,
+which is kept as the shared dev-server definition.
 
-Also untracked and probably belonging in `.gitignore` rather than the repo:
-`.claude/` (local editor config) and the two generated `.docx` files.
+## Known code weaknesses
 
-## Known code weaknesses (not yet fixed)
-
-1. `app/api/businesses/[id]/crawl/route.ts:79-93` collapses every GitHub
-   failure into one opaque string. You cannot tell an expired token from a
-   permissions problem without opening Vercel logs — which is exactly what
-   cost a round-trip on 18 Sep.
-2. `app/(dashboard)/dashboard/businesses/new/page.tsx:157` swallows a failed
-   first crawl with `console.warn`. The user is told nothing.
+1. `app/api/businesses/[id]/crawl/route.ts` collapses every GitHub failure into
+   one opaque string. You cannot tell an expired token from a permissions
+   problem without opening Vercel logs — which is exactly what cost a
+   round-trip on 18 Sep. **Still open, and deliberately so**: commit `65ec719`
+   removed the detail on purpose to stop leaking infrastructure info to the
+   browser. The fix is a distinguishable *user-facing* code, not putting the
+   GitHub body back.
+2. ~~The onboarding wizard swallows a failed first crawl with
+   `console.warn`~~ — **fixed 19 Sep** (`3328c90`). It now passes the reason
+   through to the business page. Quota was a new way for that call to fail, and
+   unexplained silence was no longer defensible.
 3. No alerting on a red nightly run. Three consecutive failures went unnoticed
-   because the dashboard still looked fine.
+   because the dashboard still looked fine. **This is the highest-value
+   remaining item** — the credit exhaustion in P0 ran for three days precisely
+   because nothing watches content rather than status.
+4. `app/api/businesses/[id]/research/route.ts` hard-codes `claude-opus-4-7`
+   with no fallback chain, where the Python side tries several. The model is
+   **current, not retired** (checked 19 Sep), so nothing is broken today — but
+   this is BUILD-PLAN pre-work item 2 and it stays outstanding.
 
 ## Suggested order for the next session
 
-1. Top up Anthropic credit — unblocks the most.
-2. Confirm the PAT status in Vercel logs, regenerate, update, **redeploy**.
-3. Decide the public-repo question, then commit the documentation.
-4. Security pass: remove the dead `SUPABASE_SERVICE_KEY` from `.env.local`,
-   crawler → service-role key, RLS, leaked-password protection.
-5. Then `BUILD-PLAN.md` Session 5 proper — rebrand, Inngest, schema migration,
-   eval harness v0.
+**Done in Session 5 (19 Sep):** documentation committed and pushed
+(`6562888`, `45e4e6f`) · dead `SUPABASE_SERVICE_KEY` removed from `.env.local`
+· per-account quotas live (`4723b5a`, `3328c90`) · `token_usage` cost ledger
+live (`a06f7c2`, `2f80447`) · Winnow verified and rejected.
+
+**Still to do, in this order:**
+
+1. **Top up Anthropic credit** — still P0, still blocks the most. Verify
+   recovery by reading the run log for the *absence* of the credit error, not
+   by a green tick: run `#35313862212` returned `success` while failing this
+   way.
+2. **Rotate the Supabase service-role key.** Deleting the local copy from
+   `.env.local` did not revoke it, and it sat on disk since May. It is the one
+   credential that bypasses RLS entirely.
+3. **Security pass, in order** — (a) crawler to a service-role key in Actions
+   secrets, verified by a `workflow_dispatch` run *and* the next scheduled run;
+   (b) RLS on with per-user policies; (c) re-run the advisor; (d) leaked-password
+   protection. Getting (a) and (b) the wrong way round takes the nightly crawl
+   offline silently.
+4. **Alerting on content, not status** — weakness 3 above.
+5. Then the rest of `BUILD-PLAN.md` Session 5: a *new* brand candidate set
+   (Winnow is out, Lodestar unverified), Inngest, the global/tenant schema
+   split, eval harness v0.
+
+**Note for whoever picks this up:** the quota and cost tables were born with
+RLS enabled and correct policies. The five original tables were not. Enabling
+RLS on those five is the remaining gap, not a from-scratch job.
