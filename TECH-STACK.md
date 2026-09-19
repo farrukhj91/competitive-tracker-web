@@ -41,7 +41,9 @@ competitive-tracker-web  (Next.js on Vercel)          pm-competitive-research-tr
 
 **No state management library.** React state plus server components covers everything at this size. Redux or Zustand would be ceremony.
 
-**No animation library.** The design system permits `transition-all duration-200` and nothing else. Framer Motion would be a dependency serving a rule we've already decided against.
+**No animation library.** Design system v2 permits CSS transitions, a `.lift` hover, and `.reveal` — a scroll-driven fade using the native `animation-timeline: view()` with a graceful no-op fallback. Framer Motion would be a dependency serving a rule we've already decided against.
+
+**Design system v2 (Session 4).** The original system leaned on decoration — multi-hue mesh gradients, gradient headline text, angled clip-path seams, dot-grid overlays, gradient icon chips and blurred drifting orbs. That is what made the site read as cheap: ornament signalling that the layout couldn't carry itself. v2 removes all of it and spends the budget on type, spacing, hairlines and one honest shadow scale (`.elev-1/2/ink`). Visual reference: swichnow.io crossed with Stripe. Full rules in `CLAUDE.md`.
 
 ---
 
@@ -88,7 +90,9 @@ This is the most consequential library choice in the app, and it was not obvious
 
 This is a genuine constraint, not an oversight. It's documented in both repos' `CLAUDE.md` because it has bitten before.
 
-**RLS is currently disabled.** Queries are scoped by `user_email` in application code. This is deliberate tech debt from Phase 1 (the crawler's anon key needs unrestricted read/write) and is on the list below.
+**RLS is currently disabled — and it is a live external exposure, not just tech debt.** Confirmed by Supabase's security advisor (16 Sep 2026): `rls_disabled_in_public` at level **ERROR**, facing **EXTERNAL**, across all five tables. Because the publishable key ships in the public browser bundle, anyone can reach those tables directly through PostgREST; `user_email` scoping only constrains queries our own code makes.
+
+It began as deliberate Phase-1 debt — the crawler's anon key needs unrestricted read/write — and that is exactly what makes the fix non-trivial. The crawler must move to a service-role key **before** policies land, or the nightly run goes dark silently. Sequencing is in `BUILD-PLAN.md`; the credential inventory is in `SECRETS-AND-ACCESS.md`.
 
 ---
 
@@ -190,12 +194,19 @@ on:
 ## 11. Known tech debt
 
 1. **`@supabase/auth-helpers-nextjs ^0.15.0` is a dead dependency.** Verified: not imported anywhere. It's deprecated upstream and npm warns on every install. Safe to remove.
-2. **RLS disabled.** Tenant isolation is enforced in application code via `user_email`. Fine while single-user; must land before real multi-tenancy.
+2. **RLS disabled — ERROR, external-facing, live.** Verified via Supabase's advisor across all five tables. Not merely "fine while single-user": the anon key is already public, so the tables are reachable today. Blocked on migrating the crawler to a service-role key first. This is the highest-severity item on this list.
 3. **`middleware.ts` convention is deprecated in Next 16** in favour of `proxy`. The build warns on every deploy. Non-breaking for now.
 4. **Node 20 Actions deprecation.** `actions/checkout@v4`, `setup-python@v5`, `upload-artifact@v4` all warn; GitHub forces Node 24 from June 2026.
 5. **No token/cost accounting.** Anthropic bills one org-level number with no per-tenant attribution. Planned for Session 5 — see `BUILD-PLAN.md`.
 6. **No model fallback in the web app.** The Python side has a five-model chain; `/api/businesses/[id]/research` hard-codes `claude-opus-4-7` and will fail outright if it's deprecated.
 7. **Resend sandbox sender.** Email reaches only the Resend signup address until a domain is verified.
+8. **An unused service-role key sits in `.env.local`.** `SUPABASE_SERVICE_KEY` is referenced nowhere in `app`, `lib`, `components` or `middleware.ts`. It is the one credential that bypasses RLS entirely. Remove it; reintroduce only in GitHub Actions secrets as part of the RLS migration.
+9. **Leaked-password protection is off.** Supabase Auth can check new passwords against HaveIBeenPwned. Low effort, not yet enabled.
+10. **No secret rotation.** Nothing in the credential inventory has been rotated since creation (May 2026). No schedule, no runbook.
+11. **Opaque GitHub error handling.** `app/api/businesses/[id]/crawl/route.ts:79-93` collapses every `workflow_dispatch` failure into one string. An expired token and a permissions problem are indistinguishable without opening Vercel logs — which is exactly what happened on 18 Sep 2026.
+12. **The onboarding wizard swallows a failed first crawl.** `app/(dashboard)/dashboard/businesses/new/page.tsx:157` logs a `console.warn` and continues. The user is told nothing, so new businesses silently never get their first crawl.
+13. **No alerting on a red nightly run.** Three consecutive failures went unnoticed because crawl and report rows are still written, so the dashboard looks healthy while the AI half of every report is missing.
+14. **Fine-grained PAT expiry is unmonitored.** Nothing warns when `GITHUB_PAT` is about to die, and the failure is asymmetric — the manual trigger breaks while the cron keeps running on Actions secrets.
 
 ---
 

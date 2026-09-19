@@ -319,7 +319,9 @@ Reports quote competitor material. Keep excerpts short, always link to the sourc
 ### Security
 - **Service-role keys never reach the browser.** Only `NEXT_PUBLIC_*` values are client-visible; all privileged calls happen in route handlers.
 - **Secrets live in Vercel and GitHub Actions**, never in the repo. Rotate the GitHub PAT on a schedule — it can dispatch workflows.
-- **RLS must land before real multi-tenancy.** Today isolation is application-level (`user_email` filtering). Acceptable for a single dogfood user; not acceptable with paying tenants.
+- **RLS must land before real multi-tenancy — and it is already an exposure, not a future one.** Supabase's security advisor returns `rls_disabled_in_public` at **ERROR**, facing **EXTERNAL**, on all five tables (verified 16 Sep 2026). The publishable key is public by design, so today the tables are directly reachable through PostgREST; `user_email` filtering only constrains our own queries.
+  **Sequencing matters and is easy to get wrong:** the crawler authenticates with the anon key and no user session, so enabling RLS first kills the nightly run silently. Order: (1) crawler → service-role key in GitHub Actions secrets, verify a nightly run; (2) RLS on, table by table, policies keyed on the authenticated user; (3) re-run the advisor to confirm clean. Credential inventory and blast radius: `SECRETS-AND-ACCESS.md`.
+- **Leaked-password protection is disabled** in Supabase Auth. One toggle; do it during the same pass.
 - **Supabase free tier has limited backup guarantees** — for MVP, accept it; before paid users, either upgrade or run a scheduled logical dump.
 
 ### Legal pre-requisites before public users
@@ -330,7 +332,7 @@ Terms of Service · Privacy Policy (naming sub-processors: Anthropic, Supabase, 
 ## Phased build (~12 sessions; next = Session 5)
 
 **Phase A — Identity & foundation (S5–S7)**
-- **S5:** ~~write `MARKET-RESEARCH.md`~~ ✅ done; rebrand *(timeboxed)*; Inngest setup; schema migration incl. global/tenant split **+ quota and `token_usage` tables**; **SDK wrapper that logs tokens/cost per call**; eval harness v0
+- **S5:** ~~write `MARKET-RESEARCH.md`~~ ✅ done; **security pre-work item 0 (service-role key + RLS) — first, it gates the schema work**; rebrand *(timeboxed)*; Inngest setup; schema migration incl. global/tenant split **+ quota and `token_usage` tables**; **SDK wrapper that logs tokens/cost per call**; eval harness v0
 - **S6:** **Instant Teardown** — extend the existing S3 research route; make it the signup experience *(solves cold start)*. **First metered operation → build `checkQuota()` gate here**, plus email-verification gate and platform-wide free-tier teardown cap
 - **S7:** Crawler emits entity-keyed signals; deterministic diff layer; Haiku batch triage; severity golden-set eval. **Global daily-spend circuit breaker must land before anything expensive runs unattended**
 
@@ -368,8 +370,15 @@ Each is triggered by evidence, not by a date.
 
 ---
 
-## Pre-work (carry into S5 — from `TECH-STACK.md`)
+## Pre-work (carry into S5 — from `TECH-STACK.md` and `STATUS.md`)
 
+> **Live blockers come first.** As of 18 Sep 2026 the Anthropic credit balance
+> is exhausted (every nightly run since 15 Sep has failed, and reports are being
+> written without recommendations) and the Vercel `GITHUB_PAT` is rejected by
+> GitHub (manual crawl trigger down). Neither is a build task, but nothing in
+> S5 can be verified end-to-end until both are cleared. Detail in `STATUS.md`.
+
+0. **Security pass — do this first, it gates the multi-tenant schema work.** (a) Delete the unused `SUPABASE_SERVICE_KEY` line from `.env.local` — it bypasses RLS and is referenced nowhere. (b) Move the crawler to a service-role key in GitHub Actions secrets; verify one nightly run. (c) Enable RLS with per-user policies; re-run the advisor. (d) Turn on leaked-password protection. Steps (b) and (c) are a hard prerequisite for the global/tenant split — writing tenant-scoped tables on top of an unprotected schema just widens the hole.
 1. **Remove `@supabase/auth-helpers-nextjs`** — verified dead, not imported anywhere, deprecated upstream, warns on every install.
 2. **Add a model fallback chain to `/api/businesses/[id]/research`** — the Python side tries five models; the web route hard-codes `claude-opus-4-7` and fails outright if it is retired.
 3. **Unblock the Phase 3 wizard** — `ANTHROPIC_API_KEY` in Vercel and the competitors/businesses column migration in Supabase. The Instant Teardown in S6 builds directly on that route.
