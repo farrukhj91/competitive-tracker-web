@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { createMessageLogged } from '@/lib/token-usage';
 
 /**
  * POST /api/businesses/[id]/research
@@ -93,18 +94,23 @@ Return ONLY a valid JSON array, no prose before or after, no markdown code fence
   }
 ]`;
 
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-7',
-      max_tokens: 8000,
-      tools: [
-        {
-          type: 'web_search_20250305',
-          name: 'web_search',
-          max_uses: 5,
-        },
-      ],
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const response = await createMessageLogged(
+      anthropic,
+      supabase,
+      'research',
+      {
+        model: 'claude-opus-4-7',
+        max_tokens: 8000,
+        tools: [
+          {
+            type: 'web_search_20250305',
+            name: 'web_search',
+            max_uses: 5,
+          },
+        ],
+        messages: [{ role: 'user', content: prompt }],
+      },
+    );
 
     // Concatenate all `text` content blocks. The web_search tool runs
     // server-side, so the response also contains server_tool_use and
